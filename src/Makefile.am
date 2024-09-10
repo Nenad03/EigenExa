@@ -130,7 +130,14 @@ libEigenExa_a_SOURCES = \
 	hrbakwy4_body.F \
 	hrbakwy4.F \
 	eigen_scaling_h.F \
-	KMATH_EIGEN_GEV.F
+	KMATH_EIGEN_GEV.F \
+	../C/eigen_exa_interfaces.F90
+
+EigenExa.lo: ../C/EigenExa.c ../C/EigenExa.h ../C/EigenExa.fh
+	$(CC) -fPIC -c -o $@ $< 
+eigen_exa_interfaces.lo: ../C/eigen_exa_interfaces.F90
+	$(F77) -fPIC -c -o $@ $< $(AM_FFLAGS)
+
 
 if !SKIP_SHARED
 libEigenExa_a_OBJECTS_shared = $(libEigenExa_a_OBJECTS:.o=.lo)
@@ -139,10 +146,10 @@ endif
 
 if !SKIP_SHARED
 libEigenExa_so_SOURCES =
-libEigenExa.so$(EXEEXT): $(libEigenExa_a_OBJECTS_shared)
+libEigenExa.so$(EXEEXT): $(libEigenExa_a_OBJECTS_shared) EigenExa.lo 
 endif
 if !SKIP_SHARED
-	$(F77) $(SHARED_LDFLAGS) -o $@ $(libEigenExa_a_OBJECTS_shared)
+	$(F77) $(SHARED_LDFLAGS) -o $@ $(libEigenExa_a_OBJECTS_shared) EigenExa.lo 
 	chmod -x $@
 endif
 
@@ -176,7 +183,9 @@ include_HEADERS = \
 	eigen_libs0_mod.mod \
 	fs_libs_mod.mod \
 	eigen_blacs_mod.mod \
-	comm_mod.mod
+	comm_mod.mod \
+	../C/EigenExa.h \
+	../C/EigenExa.fh
 
 
 .F.o:
