@@ -32,7 +32,7 @@
 #
 #--------*---------*---------*---------*---------*---------*---------*-*
 
-AUTOMAKE_OPTIONS = foreign nostdinc
+AUTOMAKE_OPTIONS = foreign nostdinc subdir-objects
 
 instdir = ${prefix}/lib
 
@@ -130,13 +130,7 @@ libEigenExa_a_SOURCES = \
 	hrbakwy4_body.F \
 	hrbakwy4.F \
 	eigen_scaling_h.F \
-	KMATH_EIGEN_GEV.F \
-	../C/eigen_exa_interfaces.F90
-
-EigenExa.lo: ../C/EigenExa.c ../C/EigenExa.h ../C/EigenExa.fh
-	$(CC) -fPIC -c -o $@ $< 
-eigen_exa_interfaces.lo: ../C/eigen_exa_interfaces.F90
-	$(F77) -fPIC -c -o $@ $< $(AM_FFLAGS)
+	KMATH_EIGEN_GEV.F
 
 
 if !SKIP_SHARED
@@ -146,10 +140,10 @@ endif
 
 if !SKIP_SHARED
 libEigenExa_so_SOURCES =
-libEigenExa.so$(EXEEXT): $(libEigenExa_a_OBJECTS_shared) EigenExa.lo 
+libEigenExa.so$(EXEEXT): $(libEigenExa_a_OBJECTS_shared) EigenExa.lo eigen_exa_interfaces.lo 
 endif
 if !SKIP_SHARED
-	$(F77) $(SHARED_LDFLAGS) -o $@ $(libEigenExa_a_OBJECTS_shared) EigenExa.lo 
+	$(F77) $(SHARED_LDFLAGS) -o $@ $(libEigenExa_a_OBJECTS_shared) EigenExa.lo eigen_exa_interfaces.lo $(OPT_LD_LAPACK)
 	chmod -x $@
 endif
 
@@ -238,6 +232,10 @@ FS_prof.o : FS_prof.F90
 	$(F77) $(AM_FFLAGS) $(FFLAGS0) -c -o $@ $<
 miscC.o : miscC.c
 	$(CC) $(AM_CFLAGS) $(CFLAGS0) -c -o $@ $<
+EigenExa.o: ../C/EigenExa.c ../C/EigenExa.h ../C/EigenExa.fh
+	$(CC) -c -o $@ $< 
+eigen_exa_interfaces.o: ../C/eigen_exa_interfaces.F90
+	$(F77) -c -o $@ $< $(AM_FFLAGS)
 
 
 if !SKIP_SHARED
@@ -271,7 +269,12 @@ FS_const.lo : FS_const.F90
 FS_prof.lo : FS_prof.F90
 	$(F77) $(AM_FFLAGS) $(FFLAGS0) $(MACRO_PIC) -c -o tmp_$(@:.lo=.o) $<
 	mv tmp_$(@:.lo=.o) $@
+eigen_exa_interfaces.lo: ../C/eigen_exa_interfaces.F90 
+	$(F77) $(AM_FFLAGS) $(FFLAGS0) $(MACRO_PIC) -c -o tmp_$(@:.lo=.o) $<
+	mv tmp_$(@:.lo=.o) $@
 miscC.lo : miscC.c
+	$(CC) $(AM_CFLAGS) $(CFLAGS0) -fPIC -c -o $@ $<
+EigenExa.lo: ../C/EigenExa.c ../C/EigenExa.h ../C/EigenExa.fh
 	$(CC) $(AM_CFLAGS) $(CFLAGS0) -fPIC -c -o $@ $<
 endif
 
