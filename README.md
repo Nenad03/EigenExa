@@ -8,3 +8,6 @@ To build the library, do as follows.
  * make
 
 For further information, please read the user's manual in doc/.
+
+Configure on Fugaku:
+LAPACK_LIBS="-lfjscalapacksve -lfjlapackexsve" ./configure --host=login
